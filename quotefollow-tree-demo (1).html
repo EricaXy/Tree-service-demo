@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuoteFollow — Tree Service Demo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --forest: #1a2e1a;
+    --bark: #3d2b1f;
+    --leaf: #2d5a27;
+    --lime: #6abf5e;
+    --cream: #f7f3ec;
+    --paper: #fdfaf5;
+    --gold: #c8a84b;
+    --muted: #7a8a72;
+    --red: #c0392b;
+    --orange: #e07b39;
+    --border: #ddd8ce;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--forest);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--forest);
+    color: var(--cream);
+    padding: 18px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--lime); }
+  .badge {
+    background: var(--lime);
+    color: var(--forest);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  /* TABS */
+  .tabs {
+    background: var(--cream);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    display: flex;
+    gap: 0;
+  }
+  .tab {
+    padding: 14px 22px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--forest); }
+  .tab.active {
+    color: var(--leaf);
+    border-bottom-color: var(--leaf);
+  }
+
+  /* SECTIONS */
+  .section { display: none; padding: 40px; max-width: 1000px; margin: 0 auto; }
+  .section.active { display: block; }
+
+  h1 { font-family: 'DM Serif Display', serif; font-size: 32px; margin-bottom: 8px; line-height: 1.2; }
+  h2 { font-family: 'DM Serif Display', serif; font-size: 22px; margin-bottom: 16px; }
+  h3 { font-size: 15px; font-weight: 600; margin-bottom: 10px; }
+  p { font-size: 14px; color: var(--muted); line-height: 1.7; }
+
+  .subtitle { font-size: 15px; color: var(--muted); margin-bottom: 32px; }
+
+  /* CARDS */
+  .card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .card-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .card-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+
+  /* STAT CARDS */
+  .stat { text-align: center; padding: 20px; }
+  .stat-num { font-family: 'DM Serif Display', serif; font-size: 36px; color: var(--leaf); }
+  .stat-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+
+  /* TABLE */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 10px 14px; background: var(--cream); color: var(--muted); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
+  td { padding: 12px 14px; border-bottom: 1px solid #f0ece4; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fdfaf5; }
+
+  /* STATUS BADGES */
+  .status {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+  .status.no-response { background: #f0ece4; color: #8a7a5a; }
+  .status.responded { background: #e8f5e4; color: #2d6b24; }
+  .status.hot { background: #fff3e0; color: #b85c10; }
+  .status.booked { background: #e3f2fd; color: #1565c0; }
+  .status.not-interested { background: #fce4e4; color: var(--red); }
+
+  /* ONBOARDING CHAT */
+  .chat-container {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    max-width: 580px;
+    margin: 0 auto;
+  }
+  .chat-header {
+    background: var(--forest);
+    color: white;
+    padding: 16px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .chat-dot { width: 8px; height: 8px; background: var(--lime); border-radius: 50%; }
+  .chat-body { padding: 20px; min-height: 320px; max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+  .msg { max-width: 80%; }
+  .msg.ai { align-self: flex-start; }
+  .msg.user { align-self: flex-end; }
+  .msg-bubble {
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .msg.ai .msg-bubble { background: var(--cream); color: var(--forest); border-bottom-left-radius: 4px; }
+  .msg.user .msg-bubble { background: var(--leaf); color: white; border-bottom-right-radius: 4px; }
+  .msg-name { font-size: 11px; color: var(--muted); margin-bottom: 4px; font-weight: 500; }
+  .chat-input { border-top: 1px solid var(--border); padding: 14px 16px; display: flex; gap: 10px; }
+  .chat-input input {
+    flex: 1;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+  }
+  .chat-input input:focus { border-color: var(--leaf); }
+  .btn {
+    background: var(--leaf);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.2s;
+  }
+  .btn:hover { background: var(--forest); }
+  .btn.secondary {
+    background: transparent;
+    color: var(--leaf);
+    border: 1px solid var(--leaf);
+  }
+  .btn.secondary:hover { background: var(--cream); }
+
+  /* MESSAGE TEMPLATES */
+  .msg-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    position: relative;
+  }
+  .msg-tag {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .msg-tag.sms { background: #e8f5e4; color: #2d6b24; }
+  .msg-tag.email { background: #e3f2fd; color: #1565c0; }
+  .msg-day { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; font-weight: 600; }
+  .msg-text {
+    background: var(--cream);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--forest);
+    border-left: 3px solid var(--lime);
+    margin-top: 10px;
+  }
+
+  /* REPORT */
+  .report-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  .report-header {
+    background: var(--forest);
+    color: white;
+    padding: 28px 32px;
+  }
+  .report-header h2 { color: white; font-family: 'DM Serif Display', serif; font-size: 24px; margin-bottom: 4px; }
+  .report-header p { color: rgba(255,255,255,0.6); font-size: 13px; }
+  .report-body { padding: 28px 32px; }
+  .report-stat-row { display: flex; gap: 12px; margin-bottom: 24px; }
+  .report-stat {
+    flex: 1;
+    background: var(--cream);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+  }
+  .report-stat .num { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--leaf); }
+  .report-stat .lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .hot-leads { margin-bottom: 24px; }
+  .hot-lead-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .hot-lead-row:last-child { border-bottom: none; }
+  .fire { color: var(--orange); font-size: 15px; margin-right: 6px; }
+
+  /* ARCH */
+  .arch-row { display: flex; gap: 16px; margin-bottom: 16px; align-items: stretch; }
+  .arch-box {
+    flex: 1;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid var(--border);
+  }
+  .arch-box.claude { background: #f3f0ff; border-color: #c8bfff; }
+  .arch-box.gemini { background: #edf7ed; border-color: #a8d5a4; }
+  .arch-box.free { background: #fff8e8; border-color: #f0d080; }
+  .arch-box h3 { font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+  .arch-box.claude h3 { color: #4a3db5; }
+  .arch-box.gemini h3 { color: #1e6b1a; }
+  .arch-box.free h3 { color: #8a6000; }
+  .arch-item { font-size: 12px; color: var(--forest); padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.06); display: flex; align-items: center; gap: 6px; }
+  .arch-item:last-child { border-bottom: none; }
+  .arch-item::before { content: '✓'; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+  .arch-box.claude .arch-item::before { color: #6c5ce7; }
+  .arch-box.gemini .arch-item::before { color: var(--leaf); }
+  .arch-box.free .arch-item::before { color: var(--gold); }
+  .dropped-box {
+    background: #fce4e4;
+    border: 1px solid #f0b8b8;
+    border-radius: 12px;
+    padding: 16px 20px;
+  }
+  .dropped-box h3 { color: var(--red); font-size: 13px; margin-bottom: 10px; }
+  .dropped-item { font-size: 12px; color: #8a3030; padding: 4px 0; display: flex; align-items: center; gap: 6px; }
+  .dropped-item::before { content: '×'; font-weight: 700; }
+
+  .info-banner {
+    background: linear-gradient(135deg, var(--forest), var(--leaf));
+    color: white;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .info-banner strong { color: var(--lime); }
+
+  /* PROGRESS STEPS */
+  .steps { display: flex; gap: 0; margin-bottom: 32px; }
+  .step {
+    flex: 1;
+    text-align: center;
+    padding: 12px 8px;
+    font-size: 12px;
+    color: var(--muted);
+    border-bottom: 2px solid var(--border);
+    position: relative;
+  }
+  .step.done { color: var(--leaf); border-bottom-color: var(--lime); }
+  .step-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--border);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 6px;
+  }
+  .step.done .step-num { background: var(--lime); color: var(--forest); }
+
+  @media (max-width: 640px) {
+    .section { padding: 24px 16px; }
+    .card-grid, .card-grid.three { grid-template-columns: 1fr; }
+    .arch-row { flex-direction: column; }
+    .tabs { padding: 0 16px; overflow-x: auto; }
+    .header { padding: 16px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">Quote<span>Follow</span></div>
+  <div style="display:flex;align-items:center;gap:12px">
+    <span style="font-size:12px;color:rgba(255,255,255,0.5)">Tree Service Demo</span>
+    <span class="badge">Live Demo</span>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('architecture')">Architecture</div>
+  <div class="tab" onclick="showTab('onboarding')">Client Onboarding</div>
+  <div class="tab" onclick="showTab('leads')">Lead Tracker</div>
+  <div class="tab" onclick="showTab('messages')">Follow-up Messages</div>
+  <div class="tab" onclick="showTab('report')">Weekly Report</div>
+</div>
+
+<!-- ===== ARCHITECTURE ===== -->
+<div id="architecture" class="section active">
+  <h1>The New Stack</h1>
+  <p class="subtitle">Claude + Gemini replace every paid tool. Only Google Sheets remains.</p>
+
+  <div class="info-banner">
+    <strong>No more:</strong> GHL · Airtable · Make.com · String.com · Pipedream &nbsp;|&nbsp;
+    <strong>Yes to:</strong> Claude AI · Gemini · Google Sheets · Gmail · WhatsApp Business — all free or low-cost
+  </div>
+
+  <div class="arch-row">
+    <div class="arch-box claude">
+      <h3>🧠 Claude AI — the brain</h3>
+      <div class="arch-item">Onboarding chat (5 questions, client live in 3 min)</div>
+      <div class="arch-item">Writes personalised follow-up SMS + email</div>
+      <div class="arch-item">Reads replies, scores hot leads</div>
+      <div class="arch-item">Drafts weekly report for each client</div>
+      <div class="arch-item">Handles upgrade + pricing conversations</div>
+      <div class="arch-item">Answers client questions via chat</div>
+    </div>
+    <div class="arch-box gemini">
+      <h3>📊 Gemini — data engine</h3>
+      <div class="arch-item">Cleans + dedupes uploaded CSV leads</div>
+      <div class="arch-item">Reads + writes Google Sheets</div>
+      <div class="arch-item">Updates lead status after replies</div>
+      <div class="arch-item">Pulls weekly numbers for Claude's report</div>
+      <div class="arch-item">Flags overdue follow-ups automatically</div>
+    </div>
+  </div>
+
+  <div class="arch-row">
+    <div class="arch-box free">
+      <h3>🛠 Free tools (keep these)</h3>
+      <div class="arch-item">Google Sheets — lead tracker + client dashboard</div>
+      <div class="arch-item">Gmail — email follow-ups (free, no limit)</div>
+      <div class="arch-item">WhatsApp Business — hot lead alerts to contractor</div>
+      <div class="arch-item">Google Apps Script — free email scheduling (optional)</div>
+      <div class="arch-item">Tally.so — lead upload form if needed</div>
+    </div>
+    <div class="dropped-box">
+      <h3>❌ Drop these entirely</h3>
+      <div class="dropped-item">GoHighLevel (GHL) — replaced by Claude</div>
+      <div class="dropped-item">Airtable — replaced by Google Sheets</div>
+      <div class="dropped-item">Make.com — replaced by Gemini + Apps Script</div>
+      <div class="dropped-item">String.com — replaced by Gmail + WhatsApp</div>
+      <div class="dropped-item">Pipedream — no longer needed</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>How Claude and Gemini work together</h3>
+    <p style="margin-bottom:12px">Claude handles everything that requires language, judgment, and conversation. Gemini handles everything that requires touching data files and Google's ecosystem. They hand off in the middle — Claude tells Gemini what to write to the Sheet, Gemini tells Claude the numbers for the weekly report.</p>
+    <p>The client never sees any of this. They just get a WhatsApp message saying they're live, a link to their read-only Google Sheet, and a Friday email every week showing how many jobs got revived.</p>
+  </div>
+</div>
+
+<!-- ===== ONBOARDING ===== -->
+<div id="onboarding" class="section">
+  <h1>Client Onboarding</h1>
+  <p class="subtitle">A tree service company is fully set up in under 3 minutes — no forms, no logins, just a chat.</p>
+
+  <div class="steps">
+    <div class="step done"><div class="step-num">1</div>Chat</div>
+    <div class="step done"><div class="step-num">2</div>Upload leads</div>
+    <div class="step done"><div class="step-num">3</div>Gemini cleans</div>
+    <div class="step done"><div class="step-num">4</div>Sheet ready</div>
+    <div class="step done"><div class="step-num">5</div>Live ✓</div>
+  </div>
+
+  <div class="chat-container">
+    <div class="chat-header">
+      <div class="chat-dot"></div>
+      <span>QuoteFollow — New Client Setup</span>
+    </div>
+    <div class="chat-body" id="chat-body">
+      <div class="msg ai">
+        <div class="msg-name">QuoteFollow (Claude)</div>
+        <div class="msg-bubble">Hey! Welcome to QuoteFollow. I'll have you set up in about 3 minutes. First — what's your business name and which city do you mainly work in?</div>
+      </div>
+    </div>
+    <div class="chat-input">
+      <input type="text" id="chat-in" placeholder="Type your answer..." onkeydown="if(event.key==='Enter')sendChat()"/>
+      <button class="btn" onclick="sendChat()">Send</button>
+    </div>
+  </div>
+
+  <div style="margin-top:20px;text-align:center">
+    <button class="btn secondary" onclick="runFullDemo()">▶ Run full demo automatically</button>
+  </div>
+</div>
+
+<!-- ===== LEADS ===== -->
+<div id="leads" class="section">
+  <h1>Lead Tracker</h1>
+  <p class="subtitle">Google Sheets is the database. Gemini keeps it updated. Client sees a read-only view.</p>
+
+  <div class="card-grid three">
+    <div class="card stat"><div class="stat-num">24</div><div class="stat-label">Total leads</div></div>
+    <div class="card stat"><div class="stat-num" style="color:var(--orange)">7</div><div class="stat-label">Responded</div></div>
+    <div class="card stat"><div class="stat-num" style="color:var(--gold)">3</div><div class="stat-label">Hot leads</div></div>
+  </div>
+
+  <div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Job type</th>
+          <th>Quote value</th>
+          <th>Days since quote</th>
+          <th>Status</th>
+          <th>Last follow-up</th>
+        </tr>
+      </thead>
+      <tbody id="leads-table"></tbody>
+    </table>
+  </div>
+
+  <div style="margin-top:16px;font-size:12px;color:var(--muted);text-align:center">
+    ↑ This is the Google Sheet view. Gemini updates status automatically when a lead replies. Client can only view — you manage it.
+  </div>
+</div>
+
+<!-- ===== MESSAGES ===== -->
+<div id="messages" class="section">
+  <h1>Follow-up Messages</h1>
+  <p class="subtitle">Claude writes every message. Personalised to the job type, client name, and timing. You review and send via Gmail or WhatsApp.</p>
+
+  <div class="msg-card">
+    <span class="msg-tag sms">SMS</span>
+    <div class="msg-day">Bot 1 — Day 1 (24 hrs after quote)</div>
+    <h3>Quote Chaser</h3>
+    <div class="msg-text">Hey Mike, just checking in on the quote we sent for the oak removal on Elm St. We've still got availability this week if you want to lock in a spot — mornings tend to go fast in spring. Any questions about the estimate? — Green Canopy Tree Co.</div>
+  </div>
+
+  <div class="msg-card">
+    <span class="msg-tag email">Email</span>
+    <div class="msg-day">Bot 2 — Day 7 (1 week follow-up)</div>
+    <h3>Quote Revival</h3>
+    <div class="msg-text"><strong>Subject: Still interested in the tree removal estimate?</strong><br><br>Hi Mike,<br><br>We sent a quote last week for the oak removal at your Elm St property and wanted to follow up before we close it out. Our spring schedule is filling up and we'd love to fit you in.<br><br>Happy to adjust the scope or answer any questions — just reply here or call us directly.<br><br>— Sarah, Green Canopy Tree Co.<br><em>📞 (555) 234-8901</em></div>
+  </div>
+
+  <div class="msg-card">
+    <span class="msg-tag sms">SMS</span>
+    <div class="msg-day">Bot 3 — Day 21 (Last chance)</div>
+    <h3>Last Chance Closer</h3>
+    <div class="msg-text">Hey Mike — last message from us on this one. Our spring spots are almost full and we'll be closing out your oak removal quote this week. Still want to move forward? Reply here or call Sarah at (555) 234-8901. Happy to hold a spot if you're still interested.</div>
+  </div>
+
+  <div class="card" style="background:var(--cream);border-style:dashed">
+    <h3>How Claude personalises each message</h3>
+    <p>Claude reads the lead data (name, job type, property, quote date) from Google Sheets and rewrites each template before it goes out. No two messages are identical. A stump grinding quote gets a different tone than an emergency storm removal — urgency, seasonality, and job size all factor in.</p>
+  </div>
+</div>
+
+<!-- ===== REPORT ===== -->
+<div id="report" class="section">
+  <h1>Weekly Report</h1>
+  <p class="subtitle">Claude drafts this every Friday using Gemini's data pull from Google Sheets. You review and send via Gmail.</p>
+
+  <div class="report-card">
+    <div class="report-header">
+      <p style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,0.4);margin-bottom:6px">Weekly Summary — Week of May 19, 2026</p>
+      <h2>Green Canopy Tree Co.</h2>
+      <p>Here's what happened with your old quotes this week.</p>
+    </div>
+    <div class="report-body">
+      <div class="report-stat-row">
+        <div class="report-stat"><div class="num">24</div><div class="lbl">Leads contacted</div></div>
+        <div class="report-stat"><div class="num">7</div><div class="lbl">Replied</div></div>
+        <div class="report-stat"><div class="num">3</div><div class="lbl">Hot leads</div></div>
+        <div class="report-stat"><div class="num" style="color:var(--gold)">2</div><div class="lbl">Jobs booked</div></div>
+      </div>
+
+      <div class="hot-leads">
+        <h3 style="margin-bottom:12px">🔥 Hot leads this week</h3>
+        <div class="hot-lead-row">
+          <div><strong>Mike Torres</strong> — Oak removal, Elm St<br><span style="font-size:12px;color:var(--muted)">Replied: "Still interested, call me Monday"</span></div>
+          <span class="status responded">Call pending</span>
+        </div>
+        <div class="hot-lead-row">
+          <div><strong>Linda Park</strong> — Stump grinding x3<br><span style="font-size:12px;color:var(--muted)">Replied: "Can you do all three for $400?"</span></div>
+          <span class="status hot">Negotiating</span>
+        </div>
+        <div class="hot-lead-row">
+          <div><strong>Dave Nguyen</strong> — Emergency storm cleanup<br><span style="font-size:12px;color:var(--muted)">Replied: "Yes book me in for Saturday"</span></div>
+          <span class="status booked">Booked ✓</span>
+        </div>
+      </div>
+
+      <div class="card" style="background:var(--cream);margin-bottom:16px">
+        <h3>Revenue recovered this week</h3>
+        <div style="font-family:'DM Serif Display',serif;font-size:32px;color:var(--leaf);margin:8px 0">$3,200</div>
+        <p>From 2 booked jobs that were previously dead quotes. Dave Nguyen's storm cleanup ($2,100) and Linda Park's stump package ($1,100).</p>
+      </div>
+
+      <p style="font-size:13px;line-height:1.7;color:var(--muted)">17 leads are still in sequence. We'll follow up with the 7-day message on 8 of them next week. 5 have been marked not interested and removed from the sequence. No action needed from you — we're handling everything.</p>
+
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)">
+        QuoteFollow · reply to this email with any questions · <a href="#" style="color:var(--leaf)">view your full lead sheet</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== WORDPRESS EMBED NOTE (hidden, for dev reference only) =====
+     To use on WordPress:
+     1. Install "Insert Headers and Footers" or use a Full-Width page template
+     2. Paste this file's contents into an HTML block on a Full-Width page
+     3. Remove <!DOCTYPE html>, <html>, <head>, </head>, <body>, </body>, </html> tags
+        — WordPress provides those already
+     4. Keep everything from <style> down to </script>
+     5. Set the page template to "Full Width" or "No Sidebar" so tabs don't get cut off
+     6. The sticky header uses z-index:100 — if WordPress header overlaps, change z-index to 9
+===== -->
+
+<script>
+  function showTab(id) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    event.target.classList.add('active');
+  }
+
+  // ---- LEADS DATA ----
+  const leads = [
+    { name: 'Mike Torres', job: 'Oak removal', value: '$1,850', days: 24, status: 'hot', followup: 'Day 7 SMS sent' },
+    { name: 'Linda Park', job: 'Stump grinding x3', value: '$480', days: 18, status: 'responded', followup: 'Day 7 SMS sent' },
+    { name: 'Dave Nguyen', job: 'Storm cleanup', value: '$2,100', days: 8, status: 'booked', followup: 'Booked ✓' },
+    { name: 'Carlos Reyes', job: 'Tree trimming', value: '$320', days: 31, status: 'no-response', followup: 'Day 21 SMS queued' },
+    { name: 'Janet Mills', job: 'Dead pine removal', value: '$950', days: 12, status: 'no-response', followup: 'Day 7 SMS sent' },
+    { name: 'Tom Bradley', job: 'Root inspection', value: '$150', days: 5, status: 'no-response', followup: 'Day 1 SMS sent' },
+    { name: 'Amy Chen', job: 'Canopy trim + haul', value: '$720', days: 22, status: 'not-interested', followup: 'Removed from sequence' },
+    { name: 'Rick Okonkwo', job: 'Emergency removal', value: '$3,400', days: 3, status: 'hot', followup: 'Day 1 SMS sent' },
+    { name: 'Sandra Wu', job: 'Hedge line + 2 stumps', value: '$560', days: 15, status: 'responded', followup: 'Day 7 email sent' },
+    { name: 'Phil Garza', job: 'Oak trimming x4', value: '$1,100', days: 28, status: 'no-response', followup: 'Day 21 SMS queued' },
+  ];
+
+  const statusLabel = { 'no-response':'No response','responded':'Responded','hot':'Hot lead','booked':'Booked','not-interested':'Not interested' };
+
+  function renderLeads() {
+    const tbody = document.getElementById('leads-table');
+    tbody.innerHTML = leads.map(l => `
+      <tr>
+        <td><strong>${l.name}</strong></td>
+        <td>${l.job}</td>
+        <td><strong>${l.value}</strong></td>
+        <td style="color:${l.days>20?'var(--red)':'var(--muted)'}">Day ${l.days}</td>
+        <td><span class="status ${l.status}">${statusLabel[l.status]}</span></td>
+        <td style="color:var(--muted)">${l.followup}</td>
+      </tr>
+    `).join('');
+  }
+  renderLeads();
+
+  // ---- ONBOARDING CHAT ----
+  const script = [
+    { q: "What's your business name and which city do you mainly work in?", a: "Green Canopy Tree Co. — based in Austin TX" },
+    { q: "Perfect! How many quotes do you send out in a typical week during spring/storm season?", a: "Around 15–20 a week when it's busy" },
+    { q: "Got it. What types of jobs make up most of your quotes — removals, trimming, stumps, or emergency?", a: "Mix of removals and trimming mostly" },
+    { q: "How do you currently send quotes — text, email, or paper?", a: "We email them from Gmail" },
+    { q: "Last one — best number for us to send hot lead alerts when someone replies? (We use WhatsApp)", a: "(512) 555-0192" },
+  ];
+  let step = 0;
+  let running = false;
+
+  function addMsg(who, text) {
+    const body = document.getElementById('chat-body');
+    const div = document.createElement('div');
+    div.className = `msg ${who}`;
+    div.innerHTML = `${who==='ai'?'<div class="msg-name">QuoteFollow (Claude)</div>':''}<div class="msg-bubble">${text}</div>`;
+    body.appendChild(div);
+    body.scrollTop = body.scrollHeight;
+  }
+
+  function sendChat() {
+    if (running) return;
+    const inp = document.getElementById('chat-in');
+    const val = inp.value.trim();
+    if (!val) return;
+    inp.value = '';
+    addMsg('user', val);
+    step++;
+    setTimeout(() => {
+      if (step < script.length) {
+        addMsg('ai', script[step].q);
+      } else {
+        addMsg('ai', '✅ All set! I\'m setting up your Google Sheet tracker now and sending your lead sequence schedule to WhatsApp. You\'ll be live within the hour. Welcome to QuoteFollow, Green Canopy! 🌲');
+      }
+    }, 800);
+  }
+
+  function runFullDemo() {
+    if (running) return;
+    running = true;
+    step = 0;
+    document.getElementById('chat-body').innerHTML = '';
+    let i = 0;
+    function next() {
+      if (i > script.length) { running = false; return; }
+      if (i === 0) {
+        addMsg('ai', script[0].q); i++; setTimeout(next, 1200); return;
+      }
+      if (i <= script.length) {
+        addMsg('user', script[i-1].a);
+        setTimeout(() => {
+          if (i < script.length) addMsg('ai', script[i].q);
+          else addMsg('ai', '✅ All set! Setting up your Google Sheet tracker now and sending your lead schedule to WhatsApp. Live within the hour. Welcome to QuoteFollow, Green Canopy! 🌲');
+          i++; setTimeout(next, 1400);
+        }, 700);
+      }
+    }
+    next();
+  }
+</script>
+</body>
+</html>
